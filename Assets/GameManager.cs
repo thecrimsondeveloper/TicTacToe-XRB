@@ -16,6 +16,9 @@ public class GameManager : TicTacToeBehaviour
 
     [SerializeField] BoardSpace[] spaces;
     int[] preferedSpaces = new int[] { 4, 1, 3, 5, 7 };
+    int[] corners = new int[] { 0, 2, 6, 8 };
+    int[] edges = new int[] { 1, 3, 5, 7 };
+
     bool gameRunning = true;
     [SerializeField] AnimationCurve panelGrowCurve;
 
@@ -96,12 +99,14 @@ public class GameManager : TicTacToeBehaviour
             }
         }
 
-        //make educated choice
+        //make strategic choice
         if (choice == -1)
         {
             int numOfX = spaces.Count(x => x.Type == BoardSpace.SpaceType.X);
-            int[] corners = new int[] { 0, 2, 6, 8 };
-
+            int numOfO = spaces.Count(o => o.Type == BoardSpace.SpaceType.O);
+            int numOfTaken = spaces.Length - spaces.Count(s => s.Type == BoardSpace.SpaceType.Empty);
+     
+           
             //if there is only one X in the middle, choose a corner
             if (numOfX == 1 && spaces[4].Type == BoardSpace.SpaceType.X)
             {
@@ -111,7 +116,7 @@ public class GameManager : TicTacToeBehaviour
                 spaces[4].Type == BoardSpace.SpaceType.X &&
                 corners.Any(x => spaces[x].Type == BoardSpace.SpaceType.X))
             {//choose the spot opposite from last choice if the center and corner are taken
-                if (spaces[0].Type == BoardSpace.SpaceType.O && spaces[2].Type == BoardSpace.SpaceType.Empty) choice = 2; ;
+                if (spaces[0].Type == BoardSpace.SpaceType.O && spaces[2].Type == BoardSpace.SpaceType.Empty) choice = 2;
                 if (spaces[2].Type == BoardSpace.SpaceType.O && spaces[0].Type == BoardSpace.SpaceType.Empty) choice = 0;
                 if (spaces[6].Type == BoardSpace.SpaceType.O && spaces[8].Type == BoardSpace.SpaceType.Empty) choice = 8;
                 if (spaces[8].Type == BoardSpace.SpaceType.O && spaces[6].Type == BoardSpace.SpaceType.Empty) choice = 6;
@@ -120,17 +125,57 @@ public class GameManager : TicTacToeBehaviour
                 if (spaces[8].Type == BoardSpace.SpaceType.O && spaces[0].Type == BoardSpace.SpaceType.Empty) choice = 0;
                 if (spaces[0].Type == BoardSpace.SpaceType.O && spaces[8].Type == BoardSpace.SpaceType.Empty) choice = 8;
             }
-            else //choose the center or a side
+            else if (spaces[4].Type == BoardSpace.SpaceType.O)//if there are two edges and the middle is taken
             {
-                for (int i = 0; i < preferedSpaces.Length; i++)
+                //edges
+                if (spaces[1].Type == spaces[3].Type && spaces[1].Type == BoardSpace.SpaceType.X) choice = 0;
+                if (spaces[1].Type == spaces[5].Type && spaces[1].Type == BoardSpace.SpaceType.X) choice = 2;
+                if (spaces[7].Type == spaces[3].Type && spaces[7].Type == BoardSpace.SpaceType.X) choice = 6;
+                if (spaces[7].Type == spaces[5].Type && spaces[7].Type == BoardSpace.SpaceType.X) choice = 8;
+
+                //opposite corners
+                //if 1 and 6 then 0
+                if (spaces[1].Type == spaces[6].Type && spaces[1].Type == BoardSpace.SpaceType.X) choice = 0;
+
+                //if 1 and 8 then 2
+                if (spaces[1].Type == spaces[8].Type && spaces[1].Type == BoardSpace.SpaceType.X) choice = 2;
+
+                //if 3 and 2 then 0
+                if (spaces[3].Type == spaces[2].Type && spaces[3].Type == BoardSpace.SpaceType.X) choice = 0;
+
+                //if 3 and 8 then 6
+                if (spaces[3].Type == spaces[8].Type && spaces[3].Type == BoardSpace.SpaceType.X) choice = 6;
+
+                //if 5 and 0 then 2
+                if (spaces[5].Type == spaces[0].Type && spaces[5].Type == BoardSpace.SpaceType.X) choice = 2;
+
+                //if 5 and 6 then 8
+                if (spaces[5].Type == spaces[6].Type && spaces[5].Type == BoardSpace.SpaceType.X) choice = 8;
+
+                //if 7 and 0 then 6
+                if (spaces[7].Type == spaces[0].Type && spaces[7].Type == BoardSpace.SpaceType.X) choice = 6;
+
+                //if 7 and 2 then 8
+                if (spaces[7].Type == spaces[2].Type && spaces[7].Type == BoardSpace.SpaceType.X) choice = 8;
+
+
+                
+                if (choice != -1 && spaces[choice].Type != BoardSpace.SpaceType.Empty) choice = -1;
+            }
+        }
+
+        //choose from preffered spaces 
+        if(choice == -1){
+            if (spaces[4].Type == BoardSpace.SpaceType.Empty)//if the center is free choose it
+            {
+                choice = 4;
+            }
+            else
+            {
+                do
                 {
-                    if (spaces[i].Type != BoardSpace.SpaceType.Empty) continue;
-                    if (spaces[preferedSpaces[i]].Type == BoardSpace.SpaceType.Empty)
-                    {
-                        choice = preferedSpaces[i];
-                        break;
-                    }
-                }
+                    choice = preferedSpaces[Random.Range(0, preferedSpaces.Length)];
+                } while (spaces[choice].Type != BoardSpace.SpaceType.Empty);
             }
         }
 
